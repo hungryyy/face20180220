@@ -3,10 +3,13 @@
 
 <head>
     <meta charset="utf-8">
-    <title>Example app</title>
+    <title>Self Camera</title>
     <meta name="description" content="" />
     <link href="css/styles.css" rel="stylesheet">
     <link href="css/gradients.css" rel="stylesheet">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+    <script src="https://cdn.socket.io/socket.io-1.2.0.js"></script>
 </head>
 
 <body class="">
@@ -62,6 +65,18 @@
                 <h2>You just created a Node.js web application</h2>
             </div>
         </div>
+
+        <!-- connect to user media and show video-->
+        <p>Video Camera</p>
+        <video id="myVideo" width="400" height="300" autoplay="1"></video>
+
+        <label>状況画像</label>
+        <div id="preview"></div>
+        <button class="btn btn-default btn-lg" id="issue-pic-btn">保存</button>
+        <div id="captured-img"></div>
+
+        <div id="count">number of click:</div>
+
     </div>
 
     <footer>
@@ -69,6 +84,46 @@
     </footer>
 
     <script src="js/set-background.js"></script>
+
+    <script type="text/javascript">
+            navigator.getUserMedia = navigator.getUserMedia || navigator.webkitGetUserMedia || window.navigator.mozGetUserMedia;
+            window.URL = window.URL || window.webkitURL;
+
+            var video = document.getElementById('myVideo');
+            var localStream = null;
+            navigator.getUserMedia({video: true, audio: false},
+             function(stream) { // for success case
+              console.log(stream);
+              video.src = window.URL.createObjectURL(stream);
+             },
+             function(err) { // for error case
+              console.log(err);
+             }
+            );
+    </script>
+
+    <script>
+        var count = 0; //達成検査数カウント
+        $(function() {
+            var socket = io();
+
+            socket.on('connect', () => {
+                console.log('connect');
+            });
+
+            socket.on('disconnect', () => {
+                console.log('disconnect');
+            });
+
+            //管理admin.htmlで入力した値を表示する
+            socket.on('count', () => {
+                count++;
+                console.log('catching count. count=' + count);
+                $("#count").append(count);
+            });
+        });
+    </script>
+
 </body>
 
 </html>

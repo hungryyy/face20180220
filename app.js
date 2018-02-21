@@ -1,38 +1,42 @@
-var port = process.env.PORT || 3000,
-    http = require('http'),
-    fs = require('fs');
+//var port = process.env.PORT || 3000,
+    //http = require('http'),
+    //fs = require('fs');
 
-http.createServer(function (req, res) {
-  if (req.url.indexOf('/img') != -1) {
-    var filePath = req.url.split('/img')[1];
-    fs.readFile(__dirname + '/public/img' + filePath, function (err, data) {
-      if (err) console.log(err);
-      res.writeHead(200, {'Content-Type': 'image/svg+xml'});
-      res.write(data);
-      res.end();
-    });
-  } else if (req.url.indexOf('/js') != -1) {
-    var filePath = req.url.split('/js')[1];
-    fs.readFile(__dirname + '/public/js' + filePath, function (err, data) {
-      if (err) console.log(err);
-      res.writeHead(200, {'Content-Type': 'text/javascript'});
-      res.write(data);
-      res.end();
-    });
-  } else if(req.url.indexOf('/css') != -1) {
-    var filePath = req.url.split('/css')[1];
-    fs.readFile(__dirname + '/public/css' + filePath, function (err, data) {
-      if (err) console.log(err);
-      res.writeHead(200, {'Content-Type': 'text/css'});
-      res.write(data);
-      res.end();
-    });
-  } else {
-    fs.readFile(__dirname + '/public/index.html', function (err, data) {
-      if (err) console.log(err);
-      res.writeHead(200, {'Content-Type': 'text/html'});
-      res.write(data);
-      res.end();
-    });
-  }
-}).listen(port, '0.0.0.0');
+var express = require('express');
+var app = express();
+var http = require('http').Server(app);
+var io = require('socket.io')(http);
+var port = process.env.PORT || 3000;
+//var bodyParser = require('body-parser');
+
+//app.use(bodyParser.urlencoded({ extended: true }));
+//app.use(bodyParser.json());
+
+// serve the files out of ./public as our main files
+app.use(express.static(__dirname + '/public'));
+
+
+//API request for '/flicCount'
+app.get('/flicCount', function(req, res) {
+    console.log("get /flicCount.");
+    //console.dir(req.body);
+
+    //updateイベントを発信する(サーバーからクライアントへの発信はio.sockets.emit)
+    io.sockets.emit('count'); 
+  
+        //実行を継続しないようにreturnでコールバックを返す
+        res.send("api request for '/flicCount' is done.");
+});
+
+
+
+// エラー処理
+app.use(function(err, req, res, next) {
+  console.error(err.stack);
+  res.status(500).send('Something broke!: ' + err.message);
+});
+
+
+
+
+http.listen(port, '0.0.0.0');
